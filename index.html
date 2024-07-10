@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examination Portal</title>
+    <style>
+        body {
+            font-family:Verdana, Geneva, Tahoma, sans-serif;
+            background-color: #ffffff;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h1 {
+            color: #150330;
+        }
+        h1 span{
+            color: #7219F9;
+        }
+
+        form {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            max-width: 400px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        input[type="text"], input[type="email"], input[type="password"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #150330;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #7219F9;
+        }
+
+        #questions-container {
+            margin-top: 20px;
+        }
+
+        .question {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .option {
+            margin-left: 20px;
+        }
+
+        /* Timer Styles */
+        #timer-container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 20px;
+            display: inline-block;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Modal Styles */
+        #modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        #modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            max-width: 300px;
+            width: 90%;
+        }
+
+        #close-modal {
+            margin-top: 10px;
+            padding: 5px 10px;
+            border: none;
+            background-color: #7219F9;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #close-modal:hover {
+            background-color: #150330;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            form {
+                width: 100%;
+                padding: 15px;
+            }
+
+            .question {
+                padding: 15px;
+            }
+
+            input[type="text"], input[type="email"], input[type="password"] {
+                width: calc(100% - 16px);
+            }
+
+            button {
+                width: 100%;
+                padding: 15px;
+                margin-top: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            label {
+                font-size: 0.9rem;
+            }
+
+            button {
+                padding: 10px;
+                font-size: 1rem;
+            }
+
+            .question {
+                padding: 10px;
+            }
+
+            input[type="text"], input[type="email"], input[type="password"] {
+                padding: 8px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <img src="/logopolar.png" style="width: 10rem;">
+    <h1>PRI Employment <span>Assessment Test</span></h1>
+    <marquee>Attention!!!! Welcome to our employment assessment test. Answer this questions to the best of your knowledge. Thank you!</marquee>
+    <br>
+    <form id="student-info">
+        <label for="name">Enter your name:</label>
+        <input type="text" id="name" required>
+        <label for="email">Enter your email:</label>
+        <input type="email" id="email" required>
+        <label for="app-number">Enter your phone number:</label>
+        <input type="text" id="pnumber" required>
+        <label for="password">Enter the exam password:</label>
+        <input type="password" id="password" required>
+        <button type="submit">Begin</button>
+    </form>
+    <div id="timer-container">
+        <p id="timer">Time remaining: 45 minutes</p>
+    </div>
+    <div id="questions-container">
+        <!-- questions will be rendered here -->
+        
+    </div>
+    <div id="modal">
+        <div id="modal-content">
+            <p id="modal-message"></p>
+            <button id="close-modal">Close</button>
+        </div>
+    </div>
+    <script>
+        const questions = [
+            {
+                question: "1.   Personal care: This is hands-on assistance for the functional needs of an enrolled participant who has a physical disability and may need assistance with activities of daily living.",
+                options: ["True", "False"],
+                correct: 0
+            },
+            {
+                question: "2.   Personal care or attendant care service also includes the performance of delegated nursing function.",
+                options: ["True", "False"],
+                correct: 1
+            },
+            {
+                question: "3.	Bathing is included in activities of daily living.",
+                options: ["True", "False"],
+                correct: 0
+            },
+            {
+                question: "4.	Toileting: this involves bladder and bowel requirements, bed pan routines, movement to and from the bathroom.",
+                options: ["True", "False"],
+                correct: 0
+            },
+            {
+                question: "5.	Mobility: this is transferring from bed, chair or other structure and moving about indoors and form the bathroom.",
+                options: ["True", "False"],
+                correct: 0
+            },
+            {
+                question: "6.	Moving: turning and positioning the body while in bed or in a wheelchair.",
+                options: ["True", "False"],
+                correct: 0
+            },
+            {
+                question: "7.	Eating: this is the nutritional planning and preparing meals including prescribed special diets.",
+                options: ["True", "False"],
+                correct: 0
+            },
+            {
+                question: "8.	Dressing and changing this is including activities of daily living.",
+                options: ["True", "False"],
+                correct: 0
+            },
+            {
+                question: "9.	When taking medication or other remedies that are ordinarily self-administered, it must be ordered for the clints by a physician. To administer medication, a personal care attendant must be certified as a medication technician and a certified nursing assistant. ",
+                options: ["True", "False"],
+                correct: 0
+            },
+            {
+                question: "10.	if you noticed any sign of abuse on your client, you don’t need to report it because the client is not family. ",
+                options: ["True", "False"],
+                correct: 1
+            },
+            {
+                question: "11.	You are traveling to Florida by bus, which is 920 miles away. The bus is travelling 65 miles an hour =. You leave the station at 7am. At 8:30pm you arrived at your destination  ",
+                options: ["True", "False"],
+                correct: 1
+            },
+            {
+                question: "12.	A prescription bottles many doses of the same medication for one person. ",
+                options: ["True", "False"],
+                correct: 0
+            },
+            {
+                question: "13.	Frank has a painting job to finish. There is 1025 square feet of space to be painted. The paint he must buy covers 325 square feet per gallon. How many gallons of paint must be purchased to complete the job?  ",
+                options: ["4 gallons", "20 gallons", "6 gallons", "3.5 gallons"],
+                correct: 1
+            },
+            {
+                question: "14	The following situation has two questions. Mrs. Hemer was admitted to the assisted living home last week. She fell four years ago and broke her hip. She had surgery to repair the break. She is forgetful and needs to be reminded to use her walker. She walks using her walker. Her family had cared for her at home before she moved into the assisted living home. The family is moving out of the area.   a.	When did Mrs. Hemer break her hip?",
+                options: ["last year", "4 months ago", "4 years ago", "last month"],
+                correct: 2
+            },
+            {
+                question: "b.	Will Mrs. Homer need reminding to use her walker? ",
+                options: ["Yes", "no"],
+                correct: 0
+            },
+            {
+                question: "15.	Weeding by hand has been banned for the first time because the work is too backbreaking to laborers. Under a rule approved by California state regulators, farm workers in most cases must be given long- handled tools so they can work without bending over. The rule takes effect within two weeks. regulators have no estimate of how many fields hand hurts their backs. Agriculture, one of contributes nearly 28 billion dollars to the state economy. Choose the one best answer to the following question. The new rule become effective:",
+                options: ["Next year", "Next week", "Two years from now", "Two weeks from now"],
+                correct: 3
+            },
+            {
+                question: "16.	Conoco Philips recorded a 75 percent jump in second -quarter profit on improved oil-refining margins. Yesterday Conoco Philips stated it will increase its dividend to shareholders by 16 percent . The quarterly dividend will rise to 60 cents per share from 43 cents. Choose the one best answer. The dividends to be paid to shareholders will increase:",
+                options: ["By 43 cents per share", "By 16%", "50 cents per share", "By 75%"],
+                correct: 1
+            },
+            {
+                question: "17.	Your eight-year-old daughter is in the second grade and goes to an elementary school that uses colored ribbons to help each student know how the student is doing each week in each class. Green is for “satisfactory”, yellow is for “needs improvement”, purple is for “most improved” , red is for “unsatisfactory”. Your daughter gets red in penmanship. Yellow in geography, yellow in reading, purple in art, and green in numbers/math. Please choose the one best answer for each question. Your daughter is doing satisfactory in Geography.",
+                options: ["True", "False"],
+                correct: 1
+            },
+            {
+                question: "18.	According to a study from public -private partnership of the government agencies and health groups, schools with high percentages of inactive, poorly nourished students show smaller gains in standardized attests and higher absenteeism rates than other schools. A health group, Action for healthy kids recommends that schools have daily physical activity classes or recess and increase the availability of health food and drinks. The report found that student absences, many related to poor nutrition and lack of exercise, cost large school districts millions of dollars annually. Please choose the best answer. If schools have students who are highly inactive,  the students will:",
+                options: ["More likely to be productive", "More likely to be overweight", "More likely to be healthy", "More likely to have higher absenteeism" ],
+                correct: 3
+            },
+            {
+                question: "19.	 Mrs. Bennett, an eighty-nine-year-old, lives alone and receives services from a RSA. She is very sick and has attacks of rapid heartbeats. Last evening, Mrs. Bennett had rapid heartbeats’ her pulse was beating so fast that the care providers could not count her pulse. The care provider providing service called 911 and Mrs. Bennett was taken to the local hospital emergency department, where she was admitted.  Choose the one best answer. The care provider responded to Mrs. Bennett’s rapid heartbeats first by:",
+                options: ["Calling 911", "Calling the doctor", "Giving her medications", "Waiting to see if it happens again"],
+                correct: 0
+            },
+
+            {
+                question: "20.   MR. Jones lives with his daughter. He is confused and wonders during the night. He visits his doctor and is put on medication for confusion. The doctor also does a physical exam and orders a blood test. After a few days, Mr. Jones becomes very confused, fights with his daughter and hits her. The daughter calls the doctor. The doctor asks if Mr. Jones is passing his water as usual and tells the daughter to get a sample of Mr. Jones ‘urine and bring to the office. Choose the one best answer. Mr. Jones does the following:",
+                options: ["has a high fever", "is confused and wonders", "Lives with is son", "Is not confused"],
+                correct: 1
+            },
+            {
+                question: "21.  Sally works in an assisted living home on the evening shift. Last evening, Mr. Diego began complaining that he felt uncomfortable and had “soar stomach”. Sally gave Mr. Diego some medicine for his sour stomach. A few hours later, Mr. Diego began to sweat and said his left arm was feeling funny. Sally called the nurse. Choose the one best answer. The last thng sally did was:",
+                options: ["Call the doctor", "Call the nurse", "Give mr diego medicine", "Talk to mr diego"],
+                correct: 2
+            },
+            {
+                question: "22.  Officials say their proposed baseball park off south Capitol Street in Washington DC would be smaller than the 12-year-old Camden Yard Stadium in Baltimore. The new stadium would seat just 41,000 with 74 luxury suites and 2,000 club -level seats. The Stadium would be similar to that   of its recent contemporaries, such as PNC Park in Pittsburgh and Minute Maid Park in Houston, Choose the one best answer. The new stadium will be built in:",
+                options: ["Baltimore", "Houston", "Washington DC", "Glen arm"],
+                correct: 2
+            },
+            {
+                question: "23. Three Glen Burnie residents were taken into custody early yesterday after police and fire officials accused them of setting as many as nine fires inside the future marley Elementary School, causing an estimated dollars $1.5 million In damage to the building under construction. Charges including arson Burglary destruction of property and other offenses related to the fire. All three were captured a little more than a mile from the two-alarm blaze after a report of several people throwing flammable liquid at a vehicle. Choose the One best answer. The suspects who were arrested were from",
+                options: ["Marley", "Baltimore", "Glen burnie", "Glen arm"],
+                correct: 2
+            },
+            {
+                question: "24. E.R Haggar, Sr, SS, a son of a Lebanese immigrant who helped build a family clothing store in Texas into a national brand of slacks and shirts, died of pancreatic cancer Tuesday at his Dallas home. He was president of Haggar clothing co. from 1948 to 1971 and chairman of the board from 1971 to 1991. He began working for the company during the summer when he was fourteen. By the time he graduated from the University of Notre Dame in 1938, he had been involved in every phase of the business. Choose the one best answer. Mr. Haggar’s company manufactured:",
+                options: ["Shoes", "Socks", "Ties", "Slacks"],
+                correct: 3
+            },
+            {
+                question: "25. Russia’s Cabinet approved the Kyoto protocol and Global warming. Once the Russian parliament ratified it, worldwide adoption is expected. The protocol must be ratified by  no fewer than 55 countries. The United States, China and some other big industrial nations have rejected the treaty. The treaty seeks to reduce emissions of carbon dioxide and other greenhouse gases, which are widely seen as a key factor in global warming. Choose the one best answer. The treaty addresses global warming by addressing.",
+                options: ["The long green effect", "The green house effect", "The white house effect", "The parliament effect"],
+                correct: 1
+            },
+            {
+                question: "26.  Hand washing with soap and water is the most important and easiest way to prevent the spread of infection. Two rules for hand washing to remember are; Wash your hands before and after giving care to each client/resident; and wash your hands for at least 20 seconds each time. Choose one best answer. ",
+                options: ["It’s okay to rinse your hands under water for the 2 seconds when you’re in a rush.", "Hand washing is difficult and only needs to be done when caring for a sick resident/client.", "Hands should be washed with water and soap for at least 15 seconds each time.", "None of the above"],
+                correct: 3
+            },
+            {
+                question: "27.  Mrs. Hemingway is experiencing loose stools. She has an order for medication-Imodium. It is to be given 1 tablet after each loose stool, for a maximum of 4 tablets per day. Choose one best answer. Mrs. Hemingway has not had a stool for 4 days. You can give her Imodium. ",
+                options: ["True", "False"],
+                correct: 1
+            },
+            {
+                question: "28.  The situation has 2 questions. There goes the alarm again. I guess I should get up, but I am dreading this day, I always hate going back to school after a holiday break. I am not sure why; I am anxious to see my friends. I don’t have any overdue school assignments, but I still get that funny feeling in the pit of my stomach. Has something changed? Do all my friends still feel the same way ? What clothes should I wear today ? Everyone will wear something new, I’m sure of that. A. Which of the following is TRUE?",
+                options: ["The author is dreading studying for finals.", "the author is anxious to see her friends.", "the author feels college and high school will be the same.", "None of the above"],
+                correct: 1
+            },
+
+            {
+                question: "B.  Which of the following did the author state would be sure when she returns to school?",
+                options: ["She will meet new and interesting people in high school", "Everyone feels strange now.", "Everyone will be wearing something new.", "She wants to make sure she is different from everyone else."],
+                correct: 2
+            },
+
+            {
+                question: "29.  Which is the smallest?",
+                options: ["70", "20", "17", "35"],
+                correct: 2
+            },
+            {
+                question: "30.  Add the following numbers. 72+29",
+                options: ["70", "101", "199", "201"],
+                correct: 1
+            },
+            {
+                question: "31.  subtract the following numbers. 47-27",
+                options: ["199", "20", "29", "189"],
+                correct: 2
+            },
+            {
+                question: "33.  Divide the following numbers. 42/7",
+                options: ["6", "8", "12", "5"],
+                correct: 0
+            },
+            {
+                question: "34.  Multiply the following numbers. 10*10",
+                options: ["100", "1000", "1010", "101"],
+                correct: 0
+            },
+            {
+                question: "35.  Which is greater",
+                options: ["1/8", "1/3", "1/2", "1/4"],
+                correct: 2
+            },
+            {
+                question: "36.  Which is smallest?",
+                options: ["1/3", "1/4", "1/8", "1/2"],
+                correct: 2
+            },
+            {
+                question: "37.  Which is the smallest?",
+                options: ["5.0", "0.5", ".005", "50"],
+                correct: 2
+            },
+            {
+                question: "38.  Subtract the following numbers. 17-6",
+                options: ["11", "23", "-11", "10"],
+                correct: 0
+            },
+            {
+                question: "39.  Which is the largest?",
+                options: [".10", "1.0", "001", "01"],
+                correct: 1
+            },
+            {
+                question: "40.  Multiply the following number. 6*6",
+                options: ["112", "32", "36", "66"],
+                correct: 2
+            },
+            {
+                question: "41.  Write one fifth as a percentage",
+                options: ["1%", "40", "25", "20%"],
+                correct: 3
+            },
+            {
+                question: "42.  Change 0.75 to a fraction",
+                options: [".75/100", "75/100", "7.5/100", "2/3"],
+                correct: 1
+            },
+            {
+                question: "43.  Match the following with the correct answer 57 .89",
+                options: ["fifty- seven plus eighty nine", "fifty-seven and eighty nine", "fifty-seven and eighty nine hundredths", "fifty-seven thousandths"],
+                correct: 2
+            },
+            {
+                question: "44.  The abbreviation for teaspoon is:",
+                options: ["Tbsp", "Tsp.", "Tbs.", "T"],
+                correct: 1
+            },
+            {
+                question: "45.  Which of the following are liquid measurements?",
+                options: ["Ounces, pints, pounds.", "ounces, grains, pounds.", "ounces, quarts, gallons.", "ounces, milligrams, kilograms"],
+                correct: 2
+            },
+            {
+                question: "46.  How many seconds are there in a minute?",
+                options: ["30", "60.", "50", "45"],
+                correct: 1
+            },
+            {
+                question: "47.  Which comes next in this in this series. 19, 27, 25, _____",
+                options: ["32", "35", "15", "28", "52"],
+                correct: 3
+            },
+            
+ // Add more questions here
+        ];
+
+        const EXAM_PASSWORD = "polarviewpri";
+
+        let studentName = "";
+        let email = "";
+        let appNumber = "";
+        let score = 0;
+        let totalTime = 45 * 60; // 45 minutes in seconds
+        let timeRemaining = totalTime;
+        let timerInterval;
+        let answers = []; // To store the user's answers
+        
+        document.getElementById("student-info").addEventListener("submit", (e) => {
+            e.preventDefault();
+            studentName = document.getElementById("name").value;
+            email = document.getElementById("email").value;
+            appNumber = document.getElementById("pnumber").value;
+            const enteredPassword = document.getElementById("password").value;
+        
+            if (enteredPassword !== EXAM_PASSWORD) {
+                showModal("Incorrect password. Please try again.");
+                return;
+            }
+        
+            const lastExamTime = localStorage.getItem(studentName);
+        
+            if (lastExamTime) {
+                const currentTime = new Date().getTime();
+                const timeDiff = (currentTime - parseInt(lastExamTime)) / (1000 * 60); // in minutes
+                if (timeDiff < 30) {
+                    showModal("You cannot retake the exam within 30 minutes.");
+                    return;
+                }
+            }
+            renderQuestions();
+            startTimer();
+        });
+        
+        function renderQuestions() {
+            const questionsContainer = document.getElementById("questions-container");
+            questionsContainer.innerHTML = ""; // Clear previous content
+        
+            questions.forEach((question, index) => {
+                const questionDiv = document.createElement("div");
+                questionDiv.className = "question";
+        
+                const questionText = document.createElement("p");
+                questionText.textContent = question.question;
+                questionDiv.appendChild(questionText);
+        
+                question.options.forEach((option, optionIndex) => {
+                    const optionLabel = document.createElement("label");
+                    optionLabel.className = "option";
+        
+                    const optionRadio = document.createElement("input");
+                    optionRadio.type = "radio";
+                    optionRadio.name = `question-${index}`;
+                    optionRadio.value = optionIndex;
+        
+                    optionLabel.appendChild(optionRadio);
+                    optionLabel.appendChild(document.createTextNode(option));
+                    questionDiv.appendChild(optionLabel);
+                    questionDiv.appendChild(document.createElement("br"));
+                });
+        
+                questionsContainer.appendChild(questionDiv);
+            });
+        
+            const submitButton = document.createElement("button");
+            submitButton.textContent = "Submit";
+            submitButton.style.marginTop = "20px";
+            submitButton.addEventListener("click", checkAnswers);
+            submitButton.addEventListener("mouseover", () => {
+                submitButton.style.backgroundColor = "#1E0160";
+            });
+            submitButton.addEventListener("mouseout", () => {
+                submitButton.style.backgroundColor = "#7219F9";
+            });
+            questionsContainer.appendChild(submitButton);
+        }
+        
+        function startTimer() {
+            const timerElement = document.getElementById("timer");
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                const minutes = Math.floor(timeRemaining / 60);
+                const seconds = timeRemaining % 60;
+                timerElement.textContent = `Time remaining: ${minutes} minutes ${seconds} seconds`;
+        
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    checkAnswers();
+                }
+            }, 1000);
+        }
+        
+        function checkAnswers() {
+            clearInterval(timerInterval);
+            score = 0; // Reset score
+            answers = []; // Reset answers
+        
+            questions.forEach((question, index) => {
+                const selectedOption = document.querySelector(`input[name="question-${index}"]:checked`);
+                if (selectedOption) {
+                    const answer = parseInt(selectedOption.value);
+                    answers.push(answer); // Store the answer
+                    if (answer === question.correct) {
+                        score++;
+                    }
+                } else {
+                    answers.push(null); // No answer selected
+                }
+            });
+        
+            saveResultsToPDF();
+        }
+        
+        function saveResultsToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: "p", // Portrait orientation
+                unit: "mm",
+                format: "a4" // Standard A4 size page
+            });
+        
+            const lineHeight = 6; // Line height for each line of text
+            let y = 10; // Starting y position for the text
+            let pageNum = 1; // Page number
+        
+            doc.setFontSize(12);
+        
+            doc.text(`Name: ${studentName}`, 10, y);
+            y += lineHeight;
+            doc.text(`Email: ${email}`, 10, y);
+            y += lineHeight;
+            doc.text(`Phone Number: ${appNumber}`, 10, y);
+            y += lineHeight;
+        
+            questions.forEach((question, index) => {
+                const questionLines = doc.splitTextToSize(`Question ${index + 1}: ${question.question}`, 180);
+                doc.text(questionLines, 10, y);
+                y += questionLines.length * lineHeight;
+        
+                const answerText = `Your answer: ${question.options[answers[index]] || "Not answered"}`;
+                const answerLines = doc.splitTextToSize(answerText, 180);
+                doc.text(answerLines, 10, y);
+                y += answerLines.length * lineHeight;
+        
+                const correctAnswerText = `Correct answer: ${question.options[question.correct]}`;
+                const correctAnswerLines = doc.splitTextToSize(correctAnswerText, 180);
+                doc.text(correctAnswerLines, 10, y);
+                y += correctAnswerLines.length * lineHeight;
+        
+                y += lineHeight; // Add some space between questions
+                if (y > 250) { // Check if approaching end of page
+                    doc.addPage(); // Add new page
+                    y = 10; // Reset y position
+                    pageNum++; // Increment page number
+                }
+            });
+        
+            doc.text(`Score: ${score} out of ${questions.length}`, 10, y);
+        
+            const pdfBlob = doc.output("blob");
+        
+            const formData = new FormData();
+            formData.append("pdf", pdfBlob);
+            formData.append("name", studentName);
+            formData.append("email", email);
+        
+            fetch("send_result.php", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                if (data === "success") {
+                    showModal("Exam completed! Thank you for taking our application exam. Please stay keen to your email and expect our message.");
+                } else {
+                    showModal("An error occurred. Please try again.");
+                }
+            })
+            .catch(error => {
+                showModal("An error occurred while processing. Please try again.");
+            });
+        
+            localStorage.setItem(studentName, new Date().getTime());
+        }
+        
+        function showModal(message) {
+            const modal = document.getElementById("modal");
+            const modalMessage = document.getElementById("modal-message");
+            modalMessage.textContent = message;
+            modal.style.display = "flex";
+        
+            // Add event listener to close modal and refresh page
+            document.getElementById("close-modal").addEventListener("click", () => {
+                modal.style.display = "none";
+                location.reload(); // Reload the page
+            });
+        }
+        
+
+    </script>
+</body>
+</html>
