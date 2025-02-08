@@ -1,0 +1,12 @@
+{
+    "weather": "Sunny with scattered clouds",
+    "markets": [
+        { "name": "Odeda Market", "status": "Open" },
+        { "name": "Asero Market", "status": "Closed" }
+    ],
+    "tasks": [
+        "Water crops",
+        "Check soil moisture",
+        "Harvest tomatoes"
+    ]
+}

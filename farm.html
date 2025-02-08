@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmer Routine Management Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .dashboard {
+            width: 80%;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        header {
+            background: #007bff;
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+        }
+        section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #fff;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <h1>Farmer Routine Management Dashboard</h1>
+        </header>
+        
+        <section id="market-info">
+            <h2>Market Availability</h2>
+            <ul id="market-list"></ul>
+        </section>
+        
+        <section id="weather-info">
+            <h2>Weather Forecast</h2>
+            <p id="weather-data">Loading...</p>
+        </section>
+        
+        <section id="farming-tasks">
+            <h2>Daily Farming Tasks</h2>
+            <ul id="task-list"></ul>
+        </section>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        fetch("backend.php")
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("weather-data").textContent = data.weather;
+                
+                let marketList = document.getElementById("market-list");
+                data.markets.forEach(market => {
+                    let li = document.createElement("li");
+                    li.textContent = market.name + " - " + market.status;
+                    marketList.appendChild(li);
+                });
+                
+                let taskList = document.getElementById("task-list");
+                data.tasks.forEach(task => {
+                    let li = document.createElement("li");
+                    li.textContent = task;
+                    taskList.appendChild(li);
+                });
+            })
+            .catch(error => console.error("Error loading data:", error));
+    });
+    
+</script>
